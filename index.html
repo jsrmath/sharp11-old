@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Sharp11</title>
+<link rel="stylesheet" type="text/css" href="range.css" />
+<link rel="stylesheet" type="text/css" href="index.css" />
+</head>
+<body>
+<h1>Sharp11 Beta v1.2</h1>
+<h2>Online Theorization and Improvization Engine</h2>
+<div id="loading">Loading</div>
+<div id="pianoUnit">
+<div id="tabButtons">
+  <div id="theorizeButton" class="tabButton active">Theorize</div><div id="improviseButton" class="tabButton">Improvise</div>
+</div>
+<div id="theorize" class="tabSection">
+  <button id="sharpFlat">Show Sharps</button>
+  <button id="clear">Clear Piano</button><br />
+  <button id="getInterval">Find interval</button>
+  <button id="transpose">Transpose</button><input type="text" id="transposeInterval" /><br />
+  <button id="scale">Play scale</button><input type="text" id="scaleName" />
+  <button id="playChord">Play chord</button><input type="text" id="chordName" /><br />
+  <button id="identifyChord">Identify Chord</button><br />
+  <div id="output" class="output"></div>
+</div>
+<div id="improvise" class="tabSection">
+  <div id="settings">
+    <label for="dissonance">Dissonance:</label> <input type="range" class="improvSetting" id="dissonance" min="0" max="1" value="0.5" step="0.1" /><br />
+    <label for="changeDirection">Direction variety:</label> <input type="range" class="improvSetting" id="changeDirection" min="0" max="1" value="0.5" step="0.1" /><br />
+    <label for="jumpiness">Jumpiness:</label> <input type="range" class="improvSetting" id="jumpiness" min="0" max="1" value="0.5" step="0.1" /><br />
+    <label for="rests">Rest frequency:</label> <input type="range" class="improvSetting" id="rests" min="0" max="1" value="0.5" step="0.1" /><br />
+    <label for="rhythm">Rhythmic Variety:</label> <input type="range" class="improvSetting" id="rhythm" min="0" max="1" value="0.5" step="0.1" /><br />
+    <label for="tempo">Tempo (BPM):</label> <input type="range" class="improvSetting" id="tempo" min="40" max="200" value="120" step="10" /><br />
+    <label for="ratio">Swing Ratio:</label> <input type="range" class="improvSetting" id="ratio" min="1" max="3" value="1.5" step="0.1" /><br />
+    <div id="improvCenter">
+      <div id="chordScale" class="output"></div>
+      <button id="improv">Improvise</button><button id="stop">Stop</button>
+    </div>
+  </div>
+  <div id="form">
+    <label for="bars">Bars:</label> <input type="text" id="bars" size="1" value="8" />
+    <label for="beats">Beats:</label> <input type="text" id="beats" size="1" value="4" /><br />
+    <select id="song">
+      <option value="">Select a preloaded song</option>
+      <option value="valentine">My Funny Valentine</option>
+      <option value="atrain">Take the "A" Train</option>
+      <option value="takefive">Take Five</option>
+    </select>
+    <table id="changes"></table>
+  </div>
+</div>
+<div id="piano"></div>
+</div>
+<div id="audio"></div>
+<script type="text/javascript" src="sharp11.js"></script>
+<script type="text/javascript" src="scale.js"></script>
+<script type="text/javascript" src="chord.js"></script>
+<script type="text/javascript" src="improv.js"></script>
+<script type="text/javascript" src="../js/jquery.js"></script>
+<script type="text/javascript" src="../js/jquerytools.js"></script>
+<script type="text/javascript">
+var loadingDots = setInterval(function () {
+  if ($('#loading').text().length === 12) {
+    $('#loading').text('Loading');
+  }
+  else {
+    $('#loading').append('.');  
+  }
+}, 100),
+Piano = (function () {
+  var noteNames = ['F0', 'Gb0', 'G0', 'Ab0', 'A0', 'Bb0', 'B0', 'C1', 'Db1', 'D1', 'Eb1', 'E1', 'F1', 'Gb1', 'G1', 'Ab1', 'A1', 'Bb1', 'B1', 'C2', 'Db2', 'D2', 'Eb2', 'E2', 'F2', 'Gb2', 'G2', 'Ab2', 'A2', 'Bb2', 'B2', 'C3'],
+  i, aud, noteName, octaveNumber, noteObj,
+  playNote = function (noteObj, octaveNumber) {
+    var aud;
+    if (noteObj.accidental === 'b') {
+      noteObj = noteObj.toggleAccidental();  
+    }
+    $('#audio_' + noteObj.nameFormat + octaveNumber)[0].pause();
+    $('#audio_' + noteObj.nameFormat + octaveNumber)[0].currentTime = 0;
+    $('#audio_' + noteObj.nameFormat + octaveNumber)[0].play();
+  }
+  toggleNote = function (noteName, justPlay) {
+    var note,
+    noteObj = new Sharp11.Note(noteName.slice(0, -1).replace('s', '#')),
+    octaveNumber = noteName.slice(-1);
+    if (noteObj) {
+      noteObj = noteObj.clean();    
+    }
+    else {
+      return;    
+    }
+    if ((Piano.sharpFlat === 'flat' && noteObj.accidental === '#') || (Piano.sharpFlat === 'sharp' && noteObj.accidental === 'b')) {
+      noteObj = noteObj.toggleAccidental();
+    }
+    noteName = noteObj.nameFormat + octaveNumber;
+    note = $('#' + noteName);
+    if (justPlay) {
+      playNote(noteObj, octaveNumber);
+      return;
+    }
+    if (note.hasClass('on')) {
+      note.removeClass('on');    
+    }
+    else {
+      note.addClass('on');
+      playNote(noteObj, octaveNumber);
+    }
+  },
+  activeNotes = function () {
+    return Array.prototype.slice.call($('.on').map(function () {
+      return $(this).attr('id').replace('s', '#');                              
+    }));
+  };
+  for (i = 0; i < noteNames.length; i += 1) {
+    noteName = noteNames[i].replace('#', 's');
+    octaveNumber = noteName.slice(-1);
+    $('#piano').append('<div id="' + noteName + '" class="pianoKey ' + (/[bs]/.test(noteName) ? 'blackKey' : 'whiteKey') + '"><div class="noteName">' + noteName.slice(0, -1) + '</div></div>');
+    noteObj = new Sharp11.Note(noteName.slice(0, -1));
+    if (noteObj.accidental === 'b') {
+      noteObj = noteObj.toggleAccidental();  
+    }
+    noteName = noteObj.nameFormat + octaveNumber;
+    aud = new Audio();
+    aud.id = 'audio_' + noteName;
+    aud.innerHTML = '<source src="notes/' + noteName + '.mp3" type="audio/mpeg" /><source src="notes/' + noteName + '.ogg" type="audio/ogg" />';
+    aud.load();
+    $('#audio').append(aud);
+  }
+  $('.pianoKey').click(function () {
+    toggleNote($(this).attr('id'));
+  });
+  return {
+    toggleNote: toggleNote,
+    activeNotes: activeNotes,
+    clear: function () {
+      var i, notes = activeNotes();
+      for (i = 0; i < notes.length; i += 1) {
+        toggleNote(notes[i]);  
+      }
+    },
+    sharpFlat: 'flat'
+  };
+}()),
+playChord = function (chord, justPlay) {
+  var octaveNumber = 1, i, note;
+  $('#output').html('');
+  try {
+    if (!(chord instanceof Sharp11.Chord)) {
+      chord = new Sharp11.Chord(chord);    
+    }
+    chord = chord.chord;
+  } catch (e) {
+    $('#output').html('Invalid chord symbol');  
+  }
+  Piano.clear();
+  if (new Sharp11.Note('E').lower(chord[0])) {
+    octaveNumber = 0;  
+  }
+  for (i = 0; i < chord.length; i += 1) {
+    note = chord[i];
+    Piano.toggleNote(note.name + octaveNumber, justPlay);
+    if (i < chord.length - 1 && chord[i + 1].lower(note)) {
+      octaveNumber += 1;    
+    }
+  }
+},
+imp = new Sharp11.Improv(),
+printChordTable = function () {
+  var i, j, html = '';
+  for (i = 0; i < imp.bars; i += 1) {
+    html += '<tr><th>' + (i + 1) + '</th>';
+    for (j = 0; j < imp.beats; j += 1) {
+      html += '<td contenteditable="true" data-bar="' + (i + 1) + '" data-beat="' + (j + 1) + '"> </td>';
+    }
+    html += '</tr>';
+  }
+  $('#changes').html(html);
+},
+formatChord = function (chord) {
+  var symbol = chord.split(/n|add|6|7|9|11|13/, 1)[0],
+  symbolSup = chord.slice(symbol.length).split(/\/[^9]/, 1)[0],
+  bass = chord.slice(symbol.length + symbolSup.length);
+  if (symbolSup) {
+    symbolSup = '<sup>' + symbolSup + '</sup>'; 
+  }
+  if (symbol[1] === '#' || symbol[1] === 'b') {
+    symbol = symbol[0] + '<sup>' + symbol[1] + '</sup>' + symbol.slice(2);  
+  }
+  if (bass[2] === '#' || bass[2] === 'b') {
+    bass = bass.slice(0, 2) + '<sup>' + bass[2] + '</sup>';  
+  }
+  return symbol + symbolSup + bass;
+},
+t;
+printChordTable();
+$('.improvSetting').rangeinput();
+$('#sharpFlat').click(function () {
+  if (Piano.sharpFlat === 'flat') {
+    Piano.sharpFlat = 'sharp';
+    $(this).html('Show Flats');
+  }
+  else {
+    Piano.sharpFlat = 'flat';
+    $(this).html('Show Sharps');
+  }
+  $('.blackKey').each(function () {
+    var note = new Sharp11.Note($(this).attr('id').slice(0, -1).replace('s', '#')),
+    octaveNumber = $(this).attr('id').slice(-1),
+    newNote = note.toggleAccidental().name + octaveNumber;
+    $(this).attr('id', newNote.replace('#', 's'));
+    $(this).find('div.noteName').html(newNote.slice(0, -1));
+  });
+});
+$('#clear').click(function () {
+  Piano.clear();                        
+});
+$('#getInterval').click(function () {
+  var notes = Piano.activeNotes(),
+  note1 = new Sharp11.Note(notes[0].slice(0, -1)),
+  note2 = notes[1].slice(0, -1),
+  octaveJump = Number(notes[1].slice(-1)) - Number(notes[0].slice(-1));
+  $('#output').html(note1.getInterval(note2, octaveJump).toString());
+});
+$('#transpose').click(function () {
+  var notes = Piano.activeNotes(), i, interval = $('#transposeInterval').val(), note, newNote, octaveNumber;
+  $('#output').html('');
+  for (i = 0; i < notes.length; i += 1) {
+    note = new Sharp11.Note(notes[i].slice(0, -1));
+    octaveNumber = Number(notes[i].slice(-1));
+    if (Number(interval.match(/\d+/)[0]) > 7) {
+      octaveNumber += 1;    
+    }
+    try {
+      newNote = note.transpose(interval);
+    } catch (e) {
+      $('#output').html('Invalid interval');    
+    }
+    if (newNote.lower(note)) {
+      octaveNumber += 1;    
+    }
+    Piano.toggleNote(notes[i]);
+    Piano.toggleNote(newNote.clean().name + octaveNumber);
+  }
+});
+$('#scale').click(function () {
+  var fullNote = Piano.activeNotes().length ? Piano.activeNotes()[0] : null,
+  scaleName = $('#scaleName').val(),
+  scale, note, octaveNumber, index = 0, currentNote, octaveOffset = 0, play;
+  $('#output').html('');
+  try {
+    note = new Sharp11.Note(scaleName.split(' ')[0]);
+    scaleName = scaleName.split(' ').slice(1).join('_');
+    octaveNumber = 1;
+  } catch (e) {
+    note = new Sharp11.Note(fullNote.slice(0, -1))
+    octaveNumber = Number(fullNote.slice(-1));
+  }
+  try {
+    scale = note.scale(scaleName).scale;
+  } catch (e2) {
+    $('#output').html('Invalid scale name');
+    return;
+  }
+  Piano.clear();
+  currentNote = scale[index];
+  play = setInterval(function () {
+    if (currentNote.lower(scale[0]) || index === scale.length - 1) { // Or clause to handle C scales
+      octaveOffset = 1;    
+    }
+    Piano.toggleNote(currentNote.name + (octaveNumber + octaveOffset));
+    index += 1;
+    currentNote = scale[index];
+    if (index === scale.length) {
+      clearInterval(play);    
+    }
+  }, 500);
+});
+$('#playChord').click(function () {
+  playChord($('#chordName').val());                            
+});
+$('#identifyChord').click(function () {
+  var chord = [], notes = Piano.activeNotes(), i;
+  for (i = 0; i < notes.length; i += 1) {
+    chord.push(notes[i].slice(0, -1));
+  }
+  $('#output').html(formatChord(Sharp11.Chord.identify.apply(null, chord)));
+});
+$('#improv').click(function () {
+  var i = 0,
+  j = 0,
+  k = 0,
+  total = 0,
+  bar, beat, play, getNoteLength, shortNote, longNote, notes;
+  clearTimeout(t);
+  getNoteLength = function () {
+    switch (notes[i][2][j].length) {
+    case 2:
+      if (k === 0) {
+        return (60 / imp.settings.tempo * 1000) / (imp.settings.ratio + 1) * imp.settings.ratio;
+      }
+      else {
+        return (60 / imp.settings.tempo * 1000) / (imp.settings.ratio + 1);
+      }
+    case 3:
+      return (60 / imp.settings.tempo * 1000) / 3;
+    case 4:
+      return (60 / imp.settings.tempo * 1000) / 4;
+    }
+  }
+  imp.changes = {};
+  $('#changes td').each(function () {
+    if ($(this).text().match(/\S/)) {
+      imp.addChord($(this).text(), Number($(this).attr('data-bar')), Number($(this).attr('data-beat')));    
+    }
+  });
+  notes = imp.improvise();
+  play = function () {
+    var chord, symbol, symbolSup, length = getNoteLength();
+    if (j === 0 && k === 0) {
+      chord = notes[i][0];
+      playChord(chord, true);
+      // Format chord with superscript
+      chord = formatChord(chord);
+      $('#chordScale').html(chord + ' => <span class="capitalize">' + notes[i][1].replace(/_/g, ' ') + '</span>');
+    }
+    if (k === 0) {
+      total += 1;
+      bar = Math.ceil(total / imp.beats);
+      beat = (total % imp.beats === 0 ? imp.beats : total % imp.beats);
+      $('#changes td').removeClass('active');
+      $('[data-bar="' + bar + '"][data-beat="' + beat + '"]').addClass('active');
+    }
+    if (notes[i][2][j][k]) {
+      Piano.clear();
+      Piano.toggleNote(notes[i][2][j][k].join(''));
+    }
+    k += 1;
+    if (k === notes[i][2][j].length) {
+      j += 1;
+      k = 0;
+    }
+    if (j === notes[i][2].length) {
+      i += 1;
+      j = 0;
+    }
+    if (i === notes.length) {
+      return;
+    }
+    else {
+      t = setTimeout(play, length);    
+    }
+  };
+  play();
+});
+$('#stop').click(function () {
+  clearTimeout(t);
+  Piano.clear();
+  $('#changes td').removeClass('active');
+  $('#chordScale').html('');
+});
+$('.improvSetting').change(function () {
+  imp.settings[$(this).attr('id')] = Number($(this).val());
+});
+$('#song, #bars, #beats').change(function () {
+  var i, song;
+  if (confirm('Changing the song form will get rid of your current chord changes.')) {
+    if ($('#song').val()) {
+      song = Sharp11.Improv.songs[$('#song').val()];
+      $('#song option[value=""]').attr('selected', 'selected');
+      $('#bars').val(imp.bars = song.bars);
+      $('#beats').val(imp.beats = song.beats);
+      printChordTable();
+      for (i = 0; i < song.changes.length; i += 1) {
+        $('[data-bar="' + song.changes[i][1] + '"][data-beat="' + song.changes[i][2] + '"]').text(song.changes[i][0]);
+      }
+    }
+    else {
+      imp.bars = Number($('#bars').val());
+      imp.beats = Number($('#beats').val());
+      printChordTable();
+    }
+  }
+});
+$('.tabButton').click(function () {
+  var tab = $(this).attr('id').replace('Button', '');
+  $('.tabButton').removeClass('active');
+  $(this).addClass('active');
+  $('.tabSection').hide();
+  $('#' + tab).show();
+});
+$('#audio_C3').on('loadeddata', function () {
+  $('#loading').fadeOut();
+  clearInterval(loadingDots);
+});
+</script>
+</body>
+</html>

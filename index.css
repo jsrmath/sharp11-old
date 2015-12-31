@@ -1,0 +1,255 @@
+body {
+  font-size: medium;
+  font-family: Arial, Helvetica, sans-serif;
+  background-image: url('bg.jpg');
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+h1 {
+  font-size: 300%;
+  margin: 5px auto;
+  text-align: center;
+  margin-top: 20px;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+h2 {
+  font-size: 200%;
+  margin: 5px auto;
+  text-align: center;
+  margin-bottom: 20px;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-style: italic;
+  color: #666;
+}
+#pianoUnit {
+  margin: auto;
+  padding: 0;
+  width: 850px;
+  background-image: url('piano.png');
+  padding-bottom: 0px;
+  -moz-box-shadow: 10px 10px 24px #000;
+  -webkit-box-shadow: 10px 10px 24px #000;
+  box-shadow: 10px 10px 24px #000;
+}
+#piano {
+  margin: auto;
+  width: 780px;
+  cursor: pointer;
+}
+#theorize, #improvise {
+  margin: auto;
+  width: 770px;
+  margin-top: 1em;
+  padding: 5px;
+  overflow: auto;
+}
+#theorize {
+  text-align: center;    
+}
+#improvise {
+  display: none;
+  color: white;
+}
+#theorize input {
+  width: 10em;
+  margin-left: -50px;
+  padding-left: .5em;
+}
+#theorize button {
+  margin: 10px 50px;    
+}
+#improvise input {
+  text-align: center;
+  -moz-border-radius:5px;
+  -webkit-border-radius:5px;
+  border-radius:5px;
+}
+button, select {
+  background-image: url('button.jpg');
+  -moz-box-shadow: 0px 3px 6px #000;
+  -webkit-box-shadow: 0px 3px 6px #000;
+  box-shadow: 0px 3px 6px #000;
+  border: ridge;
+  border-radius: 4px;
+  padding: 5px;
+}
+button:active {
+  -moz-box-shadow: inset 0px 3px 6px #000;
+  -webkit-box-shadow: inset 0px 3px 6px #000;
+  box-shadow: inset 0px 3px 6px #000;
+}
+.pianoKey {
+  margin: 0;
+  padding: 0;
+  display: inline-block; /* for modern browsers */    
+  display: -moz-inline-stack; /* for FF 2 */
+  zoom: 1; /* for IE, triggers hasLayout */
+  *display: inline; /* IE 7 and below */
+}
+.whiteKey {
+  height: 120px;
+  width: 40px;
+  background-image: url('white.jpg');
+  -moz-box-shadow: 0px 9px 12px #000;
+  -webkit-box-shadow: 0px 9px 12px #000;
+  box-shadow: 0px 9px 12px #000;
+}
+.blackKey {
+  background-image: url('black.jpg');
+  color: white;
+  height: 75px;
+  width: 30px;
+  position: absolute;
+  margin-left: -15px;
+  -moz-box-shadow: 0px 4px 4px #000;
+  -webkit-box-shadow: 0px 4px 4px #000;
+  box-shadow: 0px 4px 4px #000;
+}
+.pianoKey .noteName {
+  text-align: center;
+  height: 30px;
+  padding-top: 7.5px;
+}
+.whiteKey div {
+  margin-top: 82.5px;  
+}
+.blackKey div {
+  margin-top: 37.5px;    
+}
+.on .noteName {
+  background-image: url('circle.png');
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+.on {
+  -moz-box-shadow:inset 0px 0px 10px #000;
+  -webkit-box-shadow:inset 0px 0px 10px #000;
+  box-shadow:inset 0px 0px 10px #000;  
+}
+input[type='text'], td[contenteditable='true'] {
+  background-color: transparent;
+  border: none;
+  -moz-box-shadow:inset 0px 0px 5px #000;
+  -webkit-box-shadow:inset 0px 0px 5px #000;
+  box-shadow:inset 0px 0px 5px #000; 
+  padding: 5px 0px;
+  color: white;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+input[type='text']:focus, td[contenteditable='true']:focus {
+  outline: none;
+  -moz-box-shadow:inset 0px 0px 10px #000;
+  -webkit-box-shadow:inset 0px 0px 10px #000;
+  box-shadow:inset 0px 0px 10px #000; 
+}
+#audio {
+  display: none;    
+}
+#loading {
+  background-color: black;
+  color: white;
+  font-size: 300%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  padding-top: 20%;
+  z-index: 1;
+  height: 100%;
+}
+#settings, #form {
+  position: relative;
+  width: 360px;
+  padding: 10px;
+}
+#settings {
+  float: left;
+  text-align: right;
+}
+#form {
+  float: right;
+  text-align: left;
+}
+#improvCenter {
+  text-align: center;
+  padding-top: 1em;
+}
+#changes {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-top: 1em;
+}
+#changes td {
+  width: 4.5em;
+  height: 1em;
+  text-align: center;
+  font-size: 75%;
+  vertical-align: middle;
+  padding: .25em;
+}
+#changes td.active {
+  background-color: rgba(255, 0, 0, 0.25);
+}
+#changes th {
+  padding-right: 5px;
+  -moz-box-shadow:inset 0px 0px 10px #000;
+  -webkit-box-shadow:inset 0px 0px 10px #000;
+  box-shadow:inset 0px 0px 10px #000;
+  padding: .25em;
+}
+#tabButtons {
+  width: 100%;
+}
+#theorizeButton, #improviseButton {
+  width: 50%;
+  margin: 0;
+  text-align: center;
+  padding: 5px 0;
+  font-size: 150%;
+  color: white;
+  cursor: pointer;
+  -moz-box-shadow:inset 0px 0px 5px #000;
+  -webkit-box-shadow:inset 0px 0px 5px #000;
+  box-shadow:inset 0px 0px 5px #000; 
+}
+#theorizeButton {
+  float: left;    
+}
+#improviseButton {
+  float: right;    
+}
+#theorizeButton.active, #improviseButton.active {
+  -moz-box-shadow:inset 0px 0px 15px #000;
+  -webkit-box-shadow:inset 0px 0px 15px #000;
+  box-shadow:inset 0px 0px 15px #000;  
+}
+.output {
+  height: 1em;
+  padding: 5px;
+  background-color: #093;
+  color: #CCC;
+  font-family: "Lucida Console", Monaco, monospace;
+  width: 15em;
+  margin: 5px auto;
+  -moz-box-shadow:inset 0px 0px 5px #000;
+  -webkit-box-shadow:inset 0px 0px 5px #000;
+  box-shadow:inset 0px 0px 5px #000;  
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+}
+.capitalize {
+  text-transform: capitalize;    
+}
+sup {
+  vertical-align: middle;
+  font-size: 75%;
+  position: relative;
+  top: -4px;
+}

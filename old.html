@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Sharp11 1.0 Visual API</title>
+<style type="text/css">
+.run {
+  display: block;    
+}
+</style>
+</head>
+<body>
+<h1>Sharp11 1.0 Visual API</h1>
+<div class="function" id="note">
+  <h2>Note</h2>
+  <label for="noteName">Name: </label> <input type="text" id="noteName" />
+  <div class="subfunctions">
+    <label>Subfunction:</label> <select class="subfunctionSelect">
+      <option value="">None</option>
+      <option value="getInterval">Find interval with</option>
+      <option value="transpose">Transpose</option>
+      <option value="sharp">Sharp</option>
+      <option value="flat">Flat</option>
+      <option value="clean">Clean up accidentals</option>
+      <option value="enharmonic">Is enharmonic with</option>
+    </select>
+    <input type="text" class="subfunctionParameter" />
+  </div>
+  <button class="run">Run</button>
+  Output: <div class="output"></div>
+</div>
+<div class="function" id="scale">
+  <h2>Scale</h2>
+  <label for="scaleKey">Key: </label> <input type="text" id="scaleKey" />
+  <label for="scaleName">Scale Name: </label> <input type="text" id="scaleName" />
+  <label for="scaleDescending">Descending: </label> <input type="checkbox" id="scaleDescending" />
+  <div class="subfunctions">
+    <label>Subfunction:</label> <select class="subfunctionSelect">
+      <option value="">None</option>
+      <option value="clean">Clean</option>
+      <option value="transpose">Transpose</option>
+    </select>
+    <input type="text" class="subfunctionParameter" />
+  </div>
+  <button class="run">Run</button>
+  Output: <div class="output"></div>
+</div>
+<div class="function" id="chord">
+  <h2>Chord</h2>
+  <label for="chordSymbol">Symbol: </label> <input type="text" id="chordSymbol" />
+  <div class="subfunctions">
+    <label>Subfunction:</label> <select class="subfunctionSelect">
+      <option value="">None</option>
+      <option value="clean">Clean</option>
+      <option value="transpose">Transpose</option>
+      <option value="scales">Generate Scales</option>
+    </select>
+    <input type="text" class="subfunctionParameter" />
+  </div>
+  <button class="run">Run</button>
+  Output: <div class="output"></div>
+</div>
+<script type="text/javascript" src="sharp11.js"></script>
+<script type="text/javascript" src="scale.js"></script>
+<script type="text/javascript" src="chord.js"></script>
+<script type="text/javascript" src="improv.js"></script>
+<script type="text/javascript" src="../js/jquery.js"></script>
+<script type="text/javascript">
+$('.run').click(function (event) {
+  var obj,
+  func = this.parentNode.id,
+  subfunction = $('#' + func + ' .subfunctionSelect').val(),
+  subfunctionParameter = $('#' + func + ' .subfunctionParameter').val(),
+  output = $('#' + func + ' .output');
+  switch (func) {
+  case 'note':
+    obj = new Sharp11.Note($('#noteName').val());
+    break;
+  case 'scale':
+    obj = new Sharp11.Scale($('#scaleKey').val(), $('#scaleName').val(), $('#scaleDescending').attr('checked'));
+    break;
+  case 'chord':
+    obj = new Sharp11.Chord($('#chordSymbol').val());
+    break;
+  }
+  if (subfunction) {
+    output.html(obj[subfunction](subfunctionParameter).toString());
+  }
+  else {
+    output.html(obj.toString());  
+  }
+});
+var imp = new Sharp11.Improv();
+imp.addChord('C-', 1, 1);
+imp.addChord('C-M7', 2, 1);
+imp.addChord('C-7', 3, 1);
+imp.addChord('F7', 4, 1);
+imp.addChord('AbM7', 5, 1);
+imp.addChord('F-7', 6, 1);
+imp.addChord('D-7b5', 7, 1);
+imp.addChord('G7b9', 8, 1);
+document.write(imp.improvise());
+</script>
+</body>
+</html>
